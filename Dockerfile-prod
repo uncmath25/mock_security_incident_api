@@ -1,0 +1,21 @@
+FROM uncmath25/security-incident-api-dev:latest
+LABEL maintainer="Colton Willig <coltonwillig@gmail.com>"
+
+USER root
+
+RUN apt-get update \
+    && apt-get install -y \
+        nginx \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG SERVER_DIR="server"
+COPY ./$SERVER_DIR/requirements.txt /requirements-server.txt
+RUN pip3 install -r /requirements-server.txt
+COPY ./$SERVER_DIR/nginx.conf /etc/nginx/sites-enabled/default
+COPY ./$SERVER_DIR /$SERVER_DIR
+
+WORKDIR /$SERVER_DIR
+EXPOSE 80
+
+CMD service nginx start \
+    && uwsgi --ini wsgi.ini
